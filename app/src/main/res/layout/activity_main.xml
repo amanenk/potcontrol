@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.arforge.potcontroll.MainActivity">
+
+    <EditText
+        android:id="@+id/editText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="IP"
+        android:inputType="textPersonName"/>
+
+    <Button
+        android:id="@+id/buttonGet"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:text="Get Parameters"
+        tools:layout_editor_absoluteY="6dp"
+        tools:layout_editor_absoluteX="16dp" />
+
+    <Button
+        android:id="@+id/buttonSet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Set Parameters"
+        tools:layout_editor_absoluteX="224dp"
+        tools:layout_editor_absoluteY="6dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Last Watering"
+        tools:layout_editor_absoluteX="149dp"
+        tools:layout_editor_absoluteY="54dp" />
+
+    <TextClock
+        android:id="@+id/textClock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:format24Hour="k:mm"
+        android:format12Hour="@null" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Begin Light"/>
+
+    <TextClock
+        android:id="@+id/beginClock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="End Light"/>
+
+
+    <TextClock
+        android:id="@+id/endClock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Watering Peridd" />
+
+
+
+    <EditText
+        android:id="@+id/period"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Watering length" />
+
+    <EditText
+        android:id="@+id/length"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>
