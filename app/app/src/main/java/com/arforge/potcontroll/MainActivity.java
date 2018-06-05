@@ -1,8 +1,9 @@
 package com.arforge.potcontroll;
 
+import android.app.TimePickerDialog;
 import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -11,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextClock;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.arforge.potcontroll.API.IAPI;
@@ -18,6 +20,7 @@ import com.arforge.potcontroll.API.Settings;
 import com.arforge.potcontroll.API.WiFiPoint;
 import com.arforge.potcontroll.API.WiFiSettings;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -140,8 +143,54 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (setn != null) {
                     setAllSettings(setn);
-                    Log.d(TAG, "sended");
+                    Log.d(TAG, "sent");
                 }
+            }
+        });
+
+        beginLight.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                Calendar mcurrentTime = Calendar.getInstance();
+                int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
+                int minute = mcurrentTime.get(Calendar.MINUTE);
+                TimePickerDialog mTimePicker;
+                mTimePicker = new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+                        beginLight.setText(selectedHour + ":" + selectedMinute);
+                        setn.setStartLightH(selectedHour);
+                        setn.setStartLightM(selectedMinute);
+                    }
+                }, hour, minute, true);//Yes 24 hour time
+                mTimePicker.setTitle("Select Time");
+                mTimePicker.show();
+
+            }
+        });
+
+        endLight.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                Calendar mcurrentTime = Calendar.getInstance();
+                int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
+                int minute = mcurrentTime.get(Calendar.MINUTE);
+                TimePickerDialog mTimePicker;
+                mTimePicker = new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+                        endLight.setText(selectedHour + ":" + selectedMinute);
+                        setn.setEndLightH(selectedHour);
+                        setn.setEndLightM(selectedMinute);
+                    }
+                }, hour, minute, true);//Yes 24 hour time
+                mTimePicker.setTitle("Select Time");
+                mTimePicker.show();
+
             }
         });
 
