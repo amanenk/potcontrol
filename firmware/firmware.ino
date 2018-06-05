@@ -1,23 +1,28 @@
-#define TIME_UPDATE_PERIOD_S 25
+#define TIME_UPDATE_PERIOD_S 30
 #define SERVER_PORT 80
 
-#define LIGHT_PIN 12
-#define PUMP_PIN 13
-#define LED_PIN 13
-#define BUTTON_PIN 16
+#define LIGHT_PIN 4
+#define PUMP_PIN 5
+#define LED_PIN 1
+#define BUTTON_PIN 14
+
+#define DEBUG_NTPClient
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <WiFiUdp.h>
-#include <NTPClient.h>
 #include <ArduinoJson.h>
 #include "FS.h"
 #include <Ticker.h>
+#include <TimeLib.h>
+#include <NtpClientLib.h>
 
 Ticker handler;
 Ticker wateringHandler;
-Ticker buttonHandler;
+Ticker ntpHandler;
+
+unsigned long lastWateringTime;
 
 int wateringPeriodM = 1000;
 int wateringLengthS = 10;
@@ -26,41 +31,27 @@ int startLightH = 8;
 int startLightM = 0;
 int endLightH = 18;
 int endLightM = 0;
-const char *pointName = "Home";
-const char *pointPass = "senyasonyakev";
+String ssid = "Home";
+String pwd = "senyasonyakev";
 int  pointEnc = 1;
 bool isConnected = false;
 int workingMode = 1;
 int SubstratHumidity = 0;
 int SubstratCriticalHumidity = 10;
+String toPointConnected = "";
 
-int hours = 0;
-int minutes = 0;
-bool timeUpdated = false;
 int currentWateringLength = 0;
 bool isWateringNow = false;
-int lastWateringHours = 0;
-int lastWateringMinutes = 0;
 bool isButtonPressed = false;
 
 ESP8266WebServer server ( SERVER_PORT );
 
-// By default 'time.nist.gov' is used with 60 seconds update interval and
-// no offset
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600, 20000);
-
-// You can specify the time server pool and the offset, (in seconds)
-// additionaly you can specify the update interval (in milliseconds).
-// NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600, 60000);
-
 void setup ( void ) {
-
   pinMode(LIGHT_PIN, OUTPUT);
   digitalWrite(LIGHT_PIN, HIGH);
   pinMode(PUMP_PIN, OUTPUT);
-  digitalWrite(PUMP_PIN, LOW);
-  
+  digitalWrite(PUMP_PIN, HIGH);
+
   pinMode(BUTTON_PIN, INPUT);
   digitalWrite(BUTTON_PIN, HIGH);
 
@@ -75,6 +66,8 @@ void setup ( void ) {
   loadConfig();
   Serial.println(wateringPeriodM);
 
+  Serial.print("workingMode: ");
+  Serial.println(workingMode);
   switch (workingMode) {
     case 1: ConnectToWifi();
       break;
@@ -83,45 +76,51 @@ void setup ( void ) {
     default: break;
   }
 
-  timeClient.begin();
-
+  //timeClient.begin();
+  ConfigNTP();
   handler.attach(TIME_UPDATE_PERIOD_S, handleHandler);
 
   ConfigAndStartServer();
 }
 
+
+int buttonTime = 0;
 void loop ( void ) {
+  server.handleClient();
+  handleButton();
+}
+
+void handleButton() {
   if (digitalRead(BUTTON_PIN) == 0) {
     if (!isButtonPressed) {
-       Serial.println("button pressed");
+      Serial.println("button pressed");
       isButtonPressed = true;
-      buttonHandler.once(10, checkButton);
+    } else {
+      delay(1);
+      buttonTime++;
+      if (buttonTime % 10000 == 0) {
+        workingMode++;
+        if (workingMode > 2) {
+          workingMode = 1;
+        }
+        Serial.print("Working mode changed to ");
+        Serial.println(workingMode);
+        saveConfig();
+        //        Serial.print("Button Pressed for: ");
+        //        Serial.println(buttonTime / 1000);
+        //        Serial.println(digitalRead(BUTTON_PIN));
+      }
     }
   } else {
     if (isButtonPressed) {
-        Serial.println("button released");
-    isButtonPressed = false;
+      Serial.println("button released");
+      buttonTime = 0;
+      isButtonPressed = false;
     }
-     
-  }
-  server.handleClient();
-  updateTime();
-}
-
-
-
-void checkButton() {
-  if (digitalRead(BUTTON_PIN) == 0) {
-    if (!isButtonPressed) {
-      workingMode++;
-      Serial.println("Changing mode");
-      if (workingMode > 2) {
-        workingMode = 1;
-      }
-      saveConfig();
-    }
-  } else {
-    isButtonPressed = false;
   }
 }
+
+
+
+
 

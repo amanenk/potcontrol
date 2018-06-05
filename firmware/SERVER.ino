@@ -2,7 +2,11 @@ void getParameters() {
   DynamicJsonBuffer jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
 
-  root["toPointConnected"] = WiFi.SSID();
+
+  Serial.println("NEW REQUEST");
+  root.prettyPrintTo(Serial);
+  root["timeInDevice"] = now();
+  root["toPointConnected"] = toPointConnected.c_str();
   root["wateringPeriodM"] = wateringPeriodM;
   root["wateringLengthS"] = wateringLengthS;
   root["startLightH"] = startLightH;
@@ -13,10 +17,12 @@ void getParameters() {
   root["SubstratHudimity"] = SubstratHumidity;
   root["SubstratCriticalHumidity"] = SubstratCriticalHumidity;
   root["timeZone"] = timeZone;
+  root["lastWateringTime"] = lastWateringTime;
   root.prettyPrintTo(Serial);
   char buffer1[1200];
-  root.printTo(buffer1, sizeof(buffer1));
-  server.send ( 200, "application/json",  String(buffer1));
+  root.prettyPrintTo(buffer1, sizeof(buffer1));
+  delay(100);
+  server.send ( 200, "text/json",  String(buffer1));
 }
 
 void setParameters() {
@@ -26,7 +32,7 @@ void setParameters() {
     Serial.println(server.arg("plain"));
     DynamicJsonBuffer jsonBuffer;
     JsonObject& root = jsonBuffer.parseObject(server.arg("plain"));
-
+    root.prettyPrintTo(Serial);
 
     wateringPeriodM = root["wateringPeriodM"];
     wateringLengthS = root["wateringLengthS"];
@@ -49,16 +55,23 @@ void setWifiParameters() {
   if (server.method() == HTTP_POST) {
     Serial.println("IT IS POST REQUEST");
 
+
+    const char *pointName = "Home";
+    const char *pointPass = "senyasonyakev";
+
     Serial.println(server.arg("plain"));
     DynamicJsonBuffer jsonBuffer;
     JsonObject& root = jsonBuffer.parseObject(server.arg("plain"));
-
+    root.prettyPrintTo(Serial);
 
     pointName = root["pointName"];
     pointPass = root["pointPass"];
     pointEnc = root["pointEnc"];
 
+    ssid = String(pointName);
+    pwd = String(pointPass);
     saveConfig();
+    ConnectToWifi();
     server.send ( 200, "application/json",  "OK");
 
   } else {
@@ -84,12 +97,20 @@ void handleNotFound() {
   server.send ( 404, "text/plain", message );
 }
 
-void ConfigAndStartServer(){
-  server.on ( "/", getParameters);
-  server.on ( "/getwifi", getVisiblePoints );
-  server.on ( "/setwifi", setWifiParameters );
-  server.on ( "/getparams", getParameters );
-  server.on ( "/setparams", setParameters );
+void ConfigAndStartServer() {
+  switch (workingMode) {
+    case 1:
+      server.on ( "/getparams", getParameters );
+      server.on ( "/setparams", setParameters );
+      break;
+    case 2:
+      server.on ( "/getwifi", getVisiblePoints );
+      server.on ( "/setwifi", setWifiParameters );
+      server.on ( "/getparams", getParameters );
+      server.on ( "/setparams", setParameters );
+      break;
+  }
+
   server.onNotFound ( handleNotFound );
   server.begin();
   Serial.println ( "HTTP server started" );
